@@ -13,6 +13,7 @@ Three interfaces talk to the same daemon and see the same state live:
 | CLI | `focus start`, `status`, `finish`, `abandon`, `break`, `log`, `stats` |
 | TUI | `focus tui` |
 | GUI popup | `focus gui` (also opens by itself when a session's time is up) |
+| Clock | `focus clock`: only the countdown digits, opened by itself when a session starts |
 
 ## Install
 
@@ -43,8 +44,13 @@ focus log [--week|--all]     history
 focus stats [--week]         totals, with a per-day chart for the week
 focus tui                    terminal UI
 focus gui [--x --y --w --h]  popup window
+focus clock [--x --y --w --h] countdown digits only
 focus daemon                 run the daemon in the foreground
 ```
+
+When a focus session starts, a small clock window appears with nothing but the countdown digits: no buttons, no background, no border. Drag or resize it whenever you like and the next clock opens in the same place (remembered in `$XDG_STATE_HOME/focus/clock.json`). It closes by itself when the session ends or time is up, and it never takes keyboard focus from the window you were typing in. Placement and remembering use `hyprctl` on Hyprland; on X11 the `--x`/`--y` flags and the `[clock]` config place it.
+
+When time is up you get a **Time complete** notification. Click it, or choose **New session**, to open Focus, write what you accomplished, and start the next one.
 
 When time runs out the session stays open until you write a reflection, even if every interface was closed or the machine rebooted. Stats count the planned duration for a session that ran its course and the time actually spent for one finished early. After you finish a focus session a break starts automatically (configurable). Starting a new session during a break ends the break.
 
@@ -64,6 +70,15 @@ notify = true
 sound = true
 sound_file = "/usr/share/sounds/freedesktop/stereo/complete.oga"
 popup = true                  # open the window when time is up
+
+clock_on_start = true         # open the clock window when a focus session starts
+
+[clock]                       # where the clock first appears; after you move it, it reopens there
+x = -1                        # -1: top-right corner of the focused monitor
+y = -1
+width = 260
+height = 110
+always_on_top = true          # pinned on every workspace on Hyprland
 
 [gui]
 x = -1                        # -1 lets the window manager decide
@@ -143,6 +158,8 @@ make check          gofmt, go vet (with and without the gui tag), golangci-lint,
 make build          bin/focusd and bin/focus (GUI)
 make run-daemon     daemon on throwaway paths under /tmp/focus-dev
 scripts/e2e.sh      end-to-end checks of the real binaries in a sandbox
+scripts/e2e-desktop.sh  what focusd launches and notifies, with stub focus and notify-send
+scripts/snapshot.sh <bin> <dir>  every user-facing output, masked for time; diff two builds to prove nothing changed
 make icons          re-render the PNG icons from packaging/icons/focus.svg (needs rsvg-convert)
 ```
 
