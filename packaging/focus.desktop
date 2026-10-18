@@ -1,9 +1,12 @@
 [Desktop Entry]
 Type=Application
 Name=Focus
-Comment=Start or check a focus session
+GenericName=Focus Timer
+Comment=Work in focus sessions with a goal, a timer and a reflection
 Exec=@BINDIR@/focus gui
-Icon=alarm-symbolic
+Icon=focus
 Terminal=false
-Categories=Utility;
-Keywords=pomodoro;timer;focus;
+Categories=Utility;Clock;
+Keywords=pomodoro;timer;focus;productivity;
+StartupNotify=true
+StartupWMClass=focus
