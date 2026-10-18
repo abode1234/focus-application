@@ -31,8 +31,9 @@ focus() { "$BIN/focus" "$@" 2>&1; }
 start_daemon() {
   "$BIN/focusd" 2>>"$SANDBOX/focusd.log" &
   PID=$!
-  for _ in $(seq 50); do [[ -S $SOCK ]] && return; sleep 0.1; done
-  fail "daemon did not create its socket"
+  # A crashed daemon leaves its socket file behind, so wait for an answer.
+  for _ in $(seq 50); do curl -sf --unix-socket "$SOCK" http://x/v1/health >/dev/null && return; sleep 0.1; done
+  fail "daemon did not start answering"
 }
 
 echo "daemon"
