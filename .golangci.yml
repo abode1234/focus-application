@@ -1,0 +1,31 @@
+version: "2"
+linters:
+  default: standard
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*database/sql.Tx).Rollback
+        - (*database/sql.DB).Close
+        - (*database/sql.Rows).Close
+        - (*github.com/abode1234/focus-cli/internal/store.Store).Close
+        - (net.Listener).Close
+        - (*text/tabwriter.Writer).Flush
+        - (io.Closer).Close
+        - (*os.File).Close
+        - os.Remove
+        - os.RemoveAll
+        - os.MkdirAll
+        - syscall.Flock
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (*encoding/json.Encoder).Encode
+        - (*encoding/json.Decoder).Decode
+        - (*net/http.Server).Close
+        - (*net/http.Server).Serve
+        - (*os/exec.Cmd).Wait
+        - io.Copy
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [errcheck]
