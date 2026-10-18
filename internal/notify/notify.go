@@ -6,12 +6,21 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
-// Notifier alerts the user.
+// Action is a button on a notification. The key "default" is the action
+// most notification servers run when the notification itself is clicked.
+type Action struct {
+	Key   string
+	Label string
+}
+
+// Notifier alerts the user. With actions it waits until the notification is
+// closed and returns the key of the chosen action, or "" for none.
 type Notifier interface {
-	Notify(ctx context.Context, title, body string)
+	Notify(ctx context.Context, title, body string, actions ...Action) string
 }
 
 // Desktop uses notify-send (org.freedesktop.Notifications) and, optionally,
@@ -21,18 +30,33 @@ type Desktop struct {
 	Logger    *slog.Logger
 }
 
-func (d Desktop) Notify(ctx context.Context, title, body string) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
+func (d Desktop) Notify(ctx context.Context, title, body string, actions ...Action) string {
 	log := d.Logger
 	if log == nil {
 		log = slog.Default()
 	}
-	cmd := exec.CommandContext(ctx, "notify-send", "--app-name=Focus", "--urgency=critical",
-		"--icon=alarm-symbolic", title, body)
-	if err := cmd.Run(); err != nil {
-		log.Warn("notify-send failed", "err", err)
+	go d.playSound(ctx, log)
+
+	args := []string{"--app-name=Focus", "--urgency=critical", "--icon=focus", title, body}
+	for _, a := range actions {
+		args = append(args, "--action="+a.Key+"="+a.Label)
 	}
+	if len(actions) == 0 {
+		// Without actions notify-send returns at once; the timeout only
+		// guards against a hung notification server.
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+	}
+	out, err := exec.CommandContext(ctx, "notify-send", args...).Output()
+	if err != nil {
+		log.Warn("notify-send failed", "err", err)
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
+func (d Desktop) playSound(ctx context.Context, log *slog.Logger) {
 	if d.SoundFile == "" {
 		return
 	}
@@ -40,6 +64,8 @@ func (d Desktop) Notify(ctx context.Context, title, body string) {
 		log.Warn("sound file unavailable", "path", d.SoundFile, "err", err)
 		return
 	}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 	for _, player := range []string{"pw-play", "paplay"} {
 		if _, err := exec.LookPath(player); err != nil {
 			continue
@@ -55,4 +81,4 @@ func (d Desktop) Notify(ctx context.Context, title, body string) {
 // Nop does nothing.
 type Nop struct{}
 
-func (Nop) Notify(context.Context, string, string) {}
+func (Nop) Notify(context.Context, string, string, ...Action) string { return "" }

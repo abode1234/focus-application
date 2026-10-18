@@ -47,6 +47,12 @@ type Config struct {
 	PopupCommand []string `toml:"popup_command"`
 
 	GUI GUI `toml:"gui"`
+
+	// ClockOnStart opens the clock window when a focus session starts.
+	ClockOnStart bool `toml:"clock_on_start"`
+	// Clock is where the clock window first appears. Once you move or
+	// resize it, it reopens where you left it.
+	Clock GUI `toml:"clock"`
 }
 
 // GUI controls the popup window. X/Y below zero leave placement to the
@@ -72,6 +78,8 @@ func Default() Config {
 		SoundFile:       "/usr/share/sounds/freedesktop/stereo/complete.oga",
 		Popup:           true,
 		GUI:             GUI{X: -1, Y: -1, Width: 420, Height: 520, AlwaysOnTop: true},
+		ClockOnStart:    true,
+		Clock:           GUI{X: -1, Y: -1, Width: 260, Height: 110, AlwaysOnTop: true},
 	}
 }
 
@@ -104,6 +112,9 @@ type Paths struct {
 	Socket  string
 	Lock    string
 	GUILock string
+	// ClockLock keeps a single clock window; ClockState remembers where it was.
+	ClockLock  string
+	ClockState string
 }
 
 // ResolvePaths follows the XDG base directory spec. FOCUS_SOCKET overrides
@@ -112,6 +123,7 @@ func ResolvePaths() Paths {
 	home, _ := os.UserHomeDir()
 	data := envOr("XDG_DATA_HOME", filepath.Join(home, ".local", "share"))
 	conf := envOr("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	state := envOr("XDG_STATE_HOME", filepath.Join(home, ".local", "state"))
 	runtime := envOr("XDG_RUNTIME_DIR", filepath.Join(os.TempDir(), fmt.Sprintf("focus-%d", os.Getuid())))
 	run := filepath.Join(runtime, "focus")
 	return Paths{
@@ -120,6 +132,9 @@ func ResolvePaths() Paths {
 		Socket:  envOr("FOCUS_SOCKET", filepath.Join(run, "focusd.sock")),
 		Lock:    filepath.Join(run, "focusd.lock"),
 		GUILock: filepath.Join(run, "gui.lock"),
+
+		ClockLock:  filepath.Join(run, "clock.lock"),
+		ClockState: filepath.Join(state, "focus", "clock.json"),
 	}
 }
 

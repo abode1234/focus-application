@@ -81,11 +81,27 @@ func Run(ctx context.Context, paths config.Paths, cfg config.Config, log *slog.L
 			if cfg.Popup && !late {
 				openPopup(cfg, log)
 			}
-			notifier.Notify(ctx, "Time's up: "+s.Goal, "What did you accomplish? Answer in the popup or run: focus finish \"…\"")
+			chosen := notifier.Notify(ctx, "Time complete", s.Goal+"\nWrite what you accomplished, then start a new session.",
+				notify.Action{Key: "default", Label: "Open Focus"},
+				notify.Action{Key: "new", Label: "New session"})
+			if chosen != "" {
+				launch(log, "gui")
+			}
 		},
 	})
 	if err := eng.Recover(ctx); err != nil {
 		return fmt.Errorf("recover: %w", err)
+	}
+	if cfg.ClockOnStart {
+		events, stop := eng.Subscribe()
+		defer stop()
+		go func() {
+			for ev := range events {
+				if ev.Type == engine.EventStarted && ev.Session.Kind == model.KindFocus {
+					launch(log, "clock")
+				}
+			}
+		}()
 	}
 
 	// We hold the lock, so any existing socket file is stale.
@@ -162,22 +178,31 @@ func privateDir(dir string) error {
 	return nil
 }
 
-// openPopup launches the GUI window in its own session, detached from the
-// daemon. A popup that is already open keeps itself single-instance.
+// openPopup opens the time-up window, or the configured popup_command.
 func openPopup(cfg config.Config, log *slog.Logger) {
-	argv := cfg.PopupCommand
-	if len(argv) == 0 {
-		bin, err := focusBinary()
-		if err != nil {
-			log.Warn("cannot open popup", "err", err)
-			return
-		}
-		argv = []string{bin, "gui", "--popup"}
+	if len(cfg.PopupCommand) > 0 {
+		start(log, cfg.PopupCommand)
+		return
 	}
+	launch(log, "gui", "--popup")
+}
+
+// launch runs `focus <args>` detached from the daemon. The windows it opens
+// keep themselves single-instance.
+func launch(log *slog.Logger, args ...string) {
+	bin, err := focusBinary()
+	if err != nil {
+		log.Warn("cannot find the focus binary", "err", err)
+		return
+	}
+	start(log, append([]string{bin}, args...))
+}
+
+func start(log *slog.Logger, argv []string) {
 	cmd := exec.Command(argv[0], argv[1:]...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	if err := cmd.Start(); err != nil {
-		log.Warn("open popup", "cmd", argv, "err", err)
+		log.Warn("launch", "cmd", argv, "err", err)
 		return
 	}
 	go cmd.Wait()
