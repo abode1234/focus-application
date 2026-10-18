@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Focus
+Comment=Start or check a focus session
+Exec=@BINDIR@/focus gui
+Icon=alarm-symbolic
+Terminal=false
+Categories=Utility;
+Keywords=pomodoro;timer;focus;

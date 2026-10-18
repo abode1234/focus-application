@@ -1,0 +1,12 @@
+[Unit]
+Description=Focus session daemon
+Documentation=https://github.com/abode1234/focus-cli
+
+[Service]
+Type=simple
+ExecStart=@BINDIR@/focusd
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
