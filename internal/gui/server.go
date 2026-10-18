@@ -95,6 +95,7 @@ type panelData struct {
 	Error     string
 	Notice    string
 	CloseSoon bool
+	Today     wire.Stats
 }
 
 // stateKey names what the panel shows. The page swaps the panel only when
@@ -122,6 +123,11 @@ func (s *server) load(ctx context.Context) (panelData, error) {
 		return panelData{}, err
 	}
 	d := panelData{State: stateKey(st), Status: st, Session: st.Session, Config: cfg}
+	if st.Session == nil {
+		if today, err := s.c.Stats(ctx, "day"); err == nil {
+			d.Today = today
+		}
+	}
 	for i, sec := range cfg.PresetSeconds {
 		d.Presets = append(d.Presets, preset{Seconds: sec, Label: durfmt.Human(time.Duration(sec) * time.Second), Checked: i == 0})
 	}

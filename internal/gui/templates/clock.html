@@ -5,16 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Focus clock</title>
 <style>
-:root { color-scheme: light dark; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
 body {
+  box-sizing: border-box;
   display: grid;
   place-items: center;
-  color: CanvasText;
-  font: 600 min(30vw, 78vh)/1 ui-monospace, "JetBrains Mono", "SF Mono", monospace;
+  background: #181818;
+  border: 1px solid #26233a;
+  border-radius: 16px;
+  color: #e0def4;
+  font: 600 min(30vw, 72vh)/1 "JetBrainsMono Nerd Font Mono", "JetBrains Mono", "Noto Sans Mono", "DejaVu Sans Mono", monospace;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   user-select: none;
-  cursor: default;
+  cursor: grab;
+}
+body::after {
+  content: "";
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: se-resize;
 }
 </style>
 </head>

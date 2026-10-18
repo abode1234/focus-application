@@ -16,20 +16,32 @@
     } catch {}
   }
 
+  const CIRCUMFERENCE = 339.292;
+
   function tick() {
     const el = panel.querySelector("[data-ends-at]");
     if (!el) return;
     const now = Date.now() / 1000;
     const end = +el.dataset.endsAt, start = +el.dataset.startedAt;
     const left = Math.max(0, Math.ceil(end - now));
-    el.textContent = fmt(left);
-    const bar = panel.querySelector(".bar > div");
-    if (bar) bar.style.width = `${Math.min(100, ((now - start) / (end - start)) * 100)}%`;
+    const label = el.querySelector(".countdown") || el;
+    label.textContent = fmt(left);
+    const arc = el.querySelector(".arc");
+    const done = Math.min(1, Math.max(0, (now - start) / (end - start)));
+    if (arc) arc.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - done));
     document.title = left ? `${fmt(left)} · Focus` : "Focus";
     if (left === 0) sync();
   }
   setInterval(tick, 1000);
   tick();
+
+  // Ctrl+Enter saves a reflection without reaching for the mouse.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target.matches("textarea")) {
+      e.preventDefault();
+      e.target.form.requestSubmit();
+    }
+  });
 
   document.body.addEventListener("htmx:afterSettle", () => {
     tick();

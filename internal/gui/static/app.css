@@ -1,115 +1,133 @@
+/* Rosé Pine text and accents on a #181818 base. */
 :root {
-  --bg: #f6f5fb;
-  --card: #ffffff;
-  --text: #1c1b22;
-  --muted: #6b6a75;
-  --line: #e4e2ee;
-  --accent: #5a3fd9;
-  --accent-text: #ffffff;
-  --calm: #0f766e;
-  --alert: #b45309;
-  --danger: #b91c1c;
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #131218;
-    --card: #1c1b24;
-    --text: #ecebf3;
-    --muted: #9a98a8;
-    --line: #2d2b38;
-    --accent: #a78bfa;
-    --accent-text: #15121f;
-    --calm: #5eead4;
-    --alert: #fbbf24;
-    --danger: #f87171;
-  }
+  --bg: #181818;
+  --surface: #1f1f1f;
+  --raised: #262626;
+  --line: #2e2c3a;
+  --text: #e0def4;
+  --subtle: #908caa;
+  --muted: #6e6a86;
+  --rose: #ebbcba;
+  --iris: #c4a7e7;
+  --foam: #9ccfd8;
+  --gold: #f6c177;
+  --love: #eb6f92;
+  --pine: #31748f;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body {
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 15px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: 20px;
+  -webkit-font-smoothing: antialiased;
 }
-#panel { width: 100%; max-width: 420px; }
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 22px 24px;
+#panel { width: 100%; max-width: 400px; }
+.card { display: flex; flex-direction: column; gap: 14px; }
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--rose);
 }
-header {
-  font-weight: 650;
-  color: var(--accent);
-  letter-spacing: .02em;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-h1 { font-size: 19px; margin: 2px 0 14px; overflow-wrap: anywhere; }
-.label { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.label.alert { color: var(--alert); font-weight: 650; }
-.muted { color: var(--muted); font-size: 13px; }
-.countdown {
-  font: 650 64px/1 ui-monospace, "JetBrains Mono", "SF Mono", monospace;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -.02em;
-  margin: 8px 0 14px;
-}
-.countdown.calm { color: var(--calm); }
-.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
-.bar > div { height: 100%; width: 0; background: var(--accent); transition: width 1s linear; }
-.bar.calm > div { background: var(--calm); }
-label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+.eyebrow.foam { color: var(--foam); }
+.today { margin: 0; font-size: 13px; color: var(--rose); }
+.eyebrow.gold { color: var(--gold); }
+h1 { font-size: 22px; line-height: 1.3; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.question { font-size: 18px; font-weight: 500; color: var(--text); margin: 0; }
+.muted { color: var(--subtle); font-size: 13px; margin: 0; }
+.center { text-align: center; }
+.hint { color: var(--muted); font-size: 12px; margin: -4px 0 0; text-align: center; }
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
 input[name=goal], textarea, .custom {
   width: 100%;
   font: inherit;
-  color: inherit;
-  background: var(--bg);
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
 }
-textarea { resize: vertical; }
-input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-fieldset.presets { border: 0; padding: 0; margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+input[name=goal] { font-size: 16px; }
+textarea { resize: vertical; min-height: 96px; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+input:focus, textarea:focus { outline: none; border-color: var(--iris); box-shadow: 0 0 0 3px rgba(196, 167, 231, .18); }
+
+fieldset.presets { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .chip { margin: 0; }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
 .chip span {
   display: inline-block;
-  padding: 6px 14px;
-  border: 1px solid var(--line);
+  padding: 7px 16px;
   border-radius: 999px;
-  color: var(--text);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--subtle);
   cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
 }
-.chip input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-.chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-.custom { width: 90px; margin: 0; padding: 6px 10px; display: none; }
+.chip span:hover { color: var(--text); }
+.chip input:checked + span { background: var(--rose); border-color: var(--rose); color: var(--bg); font-weight: 600; }
+.chip input:focus-visible + span { outline: 2px solid var(--iris); outline-offset: 2px; }
+.custom { width: 96px; padding: 7px 12px; display: none; }
 .presets:has(input[value=custom]:checked) .custom { display: block; }
-.check { display: flex; gap: 8px; align-items: center; color: var(--text); margin-bottom: 16px; }
-button { font: inherit; cursor: pointer; border-radius: 10px; }
+
+.check { display: flex; gap: 10px; align-items: center; color: var(--subtle); font-size: 14px; }
+.check input { accent-color: var(--rose); width: 16px; height: 16px; }
+
+button { font: inherit; cursor: pointer; border-radius: 12px; transition: filter .15s, background .15s; }
 .primary {
   width: 100%;
-  padding: 11px;
+  padding: 13px;
   border: 0;
-  background: var(--accent);
-  color: var(--accent-text);
+  background: var(--rose);
+  color: var(--bg);
   font-weight: 600;
 }
-.ghost { width: 100%; padding: 10px; background: transparent; color: var(--text); border: 1px solid var(--line); margin-top: 8px; }
-.link { background: none; border: 0; color: var(--muted); padding: 8px 0; text-decoration: underline; text-underline-offset: 3px; }
-.link.danger { color: var(--danger); }
-.secondary-row { text-align: center; margin-top: 6px; }
-details { margin: 18px 0 4px; }
-summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; }
-.error { color: var(--danger); margin: 14px 0 0; }
-.notice { color: var(--calm); margin: 14px 0 0; }
+.primary:hover { filter: brightness(1.06); }
+.ghost { width: 100%; padding: 12px; background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+.ghost:hover { background: var(--raised); }
+.link { background: none; border: 0; color: var(--subtle); padding: 6px 0; }
+.link:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.link.love:hover { color: var(--love); }
+.quiet-row { text-align: center; }
+button:focus-visible { outline: 2px solid var(--iris); outline-offset: 2px; }
+
+.ring { position: relative; width: 220px; height: 220px; margin: 8px auto 2px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 6; }
+.ring .track { stroke: var(--raised); }
+.ring .arc {
+  stroke: var(--rose);
+  stroke-linecap: round;
+  stroke-dasharray: 339.292;
+  stroke-dashoffset: 339.292;
+  transition: stroke-dashoffset 1s linear;
+}
+.ring.foam .arc { stroke: var(--foam); }
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 600 48px/1 "JetBrainsMono Nerd Font Mono", "JetBrains Mono", "Noto Sans Mono", "DejaVu Sans Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+details { border-top: 1px solid var(--line); padding-top: 12px; }
+summary { cursor: pointer; color: var(--subtle); list-style: none; text-align: center; }
+summary::-webkit-details-marker { display: none; }
+summary:hover { color: var(--text); }
+details[open] summary { margin-bottom: 12px; }
+
+.error { color: var(--love); margin: 0; font-size: 14px; }
+.notice { color: var(--foam); margin: 0; font-size: 14px; text-align: center; }
 .htmx-request button[type=submit] { opacity: .6; }
