@@ -4,7 +4,6 @@
 package gui
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -13,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/abode1234/focus-cli/internal/client"
 	"github.com/abode1234/focus-cli/internal/lockfile"
@@ -32,13 +30,10 @@ type Options struct {
 
 // Run shows the window until it is closed. If a window is already open it
 // returns immediately; that window updates itself from the event stream.
+// A missing daemon is not an error here: the window says so and recovers
+// when it starts, which matters when launched from an app menu with no
+// terminal to print to.
 func Run(c *client.Client, opts Options) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	err := c.Health(ctx)
-	cancel()
-	if err != nil {
-		return err
-	}
 	if opts.LockPath != "" {
 		os.MkdirAll(filepath.Dir(opts.LockPath), 0o700)
 		release, err := lockfile.Acquire(opts.LockPath)
