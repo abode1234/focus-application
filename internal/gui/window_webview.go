@@ -47,12 +47,33 @@ static void *focus_clock_window(int w, int h, int above) {
 	return win;
 }
 
+// The clock has no title bar, so pressing anywhere on it moves the window
+// and pressing near the bottom-right corner resizes it. Connected handlers
+// run before WebKit's own, so the page never sees these clicks.
+static gboolean focus_clock_press(GtkWidget *view, GdkEventButton *ev, gpointer data) {
+	if (ev->type != GDK_BUTTON_PRESS || ev->button != 1) {
+		return FALSE;
+	}
+	GtkWindow *win = GTK_WINDOW(data);
+	int w = gtk_widget_get_allocated_width(view);
+	int h = gtk_widget_get_allocated_height(view);
+	const int grip = 18;
+	if (ev->x >= w - grip && ev->y >= h - grip) {
+		gtk_window_begin_resize_drag(win, GDK_WINDOW_EDGE_SOUTH_EAST, ev->button,
+			(int)ev->x_root, (int)ev->y_root, ev->time);
+	} else {
+		gtk_window_begin_move_drag(win, ev->button, (int)ev->x_root, (int)ev->y_root, ev->time);
+	}
+	return TRUE;
+}
+
 static void focus_clock_show(void *w, int x, int y) {
 	GtkWidget *win = GTK_WIDGET(w);
 	GtkWidget *view = gtk_bin_get_child(GTK_BIN(win));
 	if (view) {
 		GdkRGBA clear = {0, 0, 0, 0};
 		webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(view), &clear);
+		g_signal_connect(view, "button-press-event", G_CALLBACK(focus_clock_press), win);
 	}
 	if (x >= 0 && y >= 0) {
 		gtk_window_move(GTK_WINDOW(win), x, y);
@@ -66,11 +87,25 @@ import (
 	"context"
 	"errors"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"unsafe"
 
 	webview "github.com/webview/webview_go"
 )
+
+// quitOnSignal closes the window on SIGTERM or SIGINT. WebKitGTK replaces
+// Go's default handlers, which left the window running after `kill`; this
+// re-registers them after the webview exists.
+func quitOnSignal(w webview.WebView) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-sigs
+		w.Dispatch(w.Terminate)
+	}()
+}
 
 // GTK must run on the process's main thread.
 func init() { runtime.LockOSThread() }
@@ -102,6 +137,7 @@ func openWindow(url string, opts Options) error {
 	if err := w.Bind("focusClose", func() { w.Terminate() }); err != nil {
 		return err
 	}
+	quitOnSignal(w)
 	w.Navigate(url)
 	w.Run()
 	return nil
@@ -124,6 +160,7 @@ func openClock(url string, opts Options) error {
 	if err := w.Bind("focusClose", func() { w.Terminate() }); err != nil {
 		return err
 	}
+	quitOnSignal(w)
 	w.Navigate(url)
 
 	ctx, cancel := context.WithCancel(context.Background())
