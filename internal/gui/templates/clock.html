@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus clock</title>
+<style>
+:root { color-scheme: light dark; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body {
+  display: grid;
+  place-items: center;
+  color: CanvasText;
+  font: 600 min(30vw, 78vh)/1 ui-monospace, "JetBrains Mono", "SF Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  cursor: default;
+}
+</style>
+</head>
+<body data-state="{{.State}}"{{if and .Session (not .Session.IsBreak) (not .Status.TimeUp)}} data-ends-at="{{.Session.EndsAt}}"{{end}}><span id="t">{{if and .Session (not .Session.IsBreak) (not .Status.TimeUp)}}{{clock .Status.RemainingSeconds}}{{end}}</span>
+<script>
+(() => {
+  const body = document.body, out = document.getElementById("t");
+  const end = Number(body.dataset.endsAt || 0);
+  const pad = (n) => String(n).padStart(2, "0");
+  const close = () => window.focusClose && window.focusClose();
+
+  function tick() {
+    if (!end) return close();
+    const left = Math.max(0, Math.ceil(end - Date.now() / 1000));
+    const h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), s = left % 60;
+    out.textContent = h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    if (left === 0) close();
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  // Close once this session is finished, abandoned or timed up anywhere.
+  // A daemon restart ("error") is not a reason to close.
+  new EventSource("/events").addEventListener("change", async () => {
+    try {
+      const state = await (await fetch("/state", { cache: "no-store" })).text();
+      if (state !== "error" && state !== body.dataset.state) close();
+    } catch {}
+  });
+})();
+</script>
+</body>
+</html>

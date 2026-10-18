@@ -10,9 +10,9 @@ import (
 
 // openWindow without WebKitGTK: serve the same UI for a regular browser.
 func openWindow(url string, opts Options) error {
-	if opts.Popup {
+	if opts.Popup || opts.Clock {
 		// Opened by the daemon with nowhere to print the URL; the desktop
-		// notification already tells the user time is up.
+		// notification already tells the user what happened.
 		return nil
 	}
 	fmt.Fprintf(os.Stderr, "This build has no GUI window (rebuild with: make build).\nOpen the UI in a browser instead:\n  %s\nPress Ctrl+C to stop.\n", url)

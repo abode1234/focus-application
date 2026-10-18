@@ -47,6 +47,7 @@ func (s *server) Handler() http.Handler {
 	static, _ := fs.Sub(staticFS, "static")
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 	mux.HandleFunc("GET /{$}", s.page)
+	mux.HandleFunc("GET /clock", s.clock)
 	mux.HandleFunc("GET /panel", s.panel)
 	mux.HandleFunc("GET /state", s.state)
 	mux.HandleFunc("GET /events", s.events)
@@ -62,7 +63,7 @@ func (s *server) Handler() http.Handler {
 // as a cookie.
 func (s *server) authorize(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if t := r.URL.Query().Get("t"); t != "" && r.URL.Path == "/" && s.valid(t) {
+		if t := r.URL.Query().Get("t"); t != "" && (r.URL.Path == "/" || r.URL.Path == "/clock") && s.valid(t) {
 			http.SetCookie(w, &http.Cookie{Name: cookieName, Value: t, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode})
 			next.ServeHTTP(w, r)
 			return
@@ -142,6 +143,7 @@ func (s *server) render(w http.ResponseWriter, r *http.Request, name string, edi
 }
 
 func (s *server) page(w http.ResponseWriter, r *http.Request)  { s.render(w, r, "page.html", nil) }
+func (s *server) clock(w http.ResponseWriter, r *http.Request) { s.render(w, r, "clock.html", nil) }
 func (s *server) panel(w http.ResponseWriter, r *http.Request) { s.render(w, r, "panel", nil) }
 
 func (s *server) state(w http.ResponseWriter, r *http.Request) {

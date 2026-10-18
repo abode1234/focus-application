@@ -26,6 +26,11 @@ type Options struct {
 	// once the reflection is saved.
 	Popup    bool
 	LockPath string
+
+	// Clock shows only the countdown digits of the running focus session.
+	// The window remembers where you move or resize it in StatePath.
+	Clock     bool
+	StatePath string
 }
 
 // Run shows the window until it is closed. If a window is already open it
@@ -60,7 +65,11 @@ func Run(c *client.Client, opts Options) error {
 	go hs.Serve(ln)
 	defer hs.Close()
 
-	url := fmt.Sprintf("http://%s/?t=%s", ln.Addr(), token)
+	page := "/"
+	if opts.Clock {
+		page = "/clock"
+	}
+	url := fmt.Sprintf("http://%s%s?t=%s", ln.Addr(), page, token)
 	return openWindow(url, opts)
 }
 

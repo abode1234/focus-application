@@ -191,3 +191,69 @@ func TestEventsSurviveDaemonRestart(t *testing.T) {
 		t.Fatal("no change event after the daemon came up")
 	}
 }
+
+func clockPage(t *testing.T, c *client.Client) (*browser, func() string) {
+	t.Helper()
+	srv := httptest.NewServer(newServer(c, "secret", false).Handler())
+	t.Cleanup(srv.Close)
+	jar, _ := cookiejar.New(nil)
+	b := &browser{t: t, base: srv.URL, http: &http.Client{Jar: jar}}
+	if code, _ := b.get("/clock?t=secret"); code != 200 {
+		t.Fatalf("clock with token: %d", code)
+	}
+	return b, func() string {
+		_, html := b.get("/clock")
+		return html
+	}
+}
+
+// clockText is what the clock window shows: the body's visible text.
+func clockText(html string) string {
+	start := strings.Index(html, `<span id="t">`) + len(`<span id="t">`)
+	return html[start : strings.Index(html[start:], "</span>")+start]
+}
+
+func TestClockShowsOnlyDigits(t *testing.T) {
+	c := daemon(t)
+	_, page := clockPage(t, c)
+	if got := clockText(page()); got != "" {
+		t.Fatalf("idle clock shows %q, want nothing", got)
+	}
+	if _, err := c.Start(context.Background(), "Write", 25*time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	html := page()
+	got := clockText(html)
+	if got != "25:00" && got != "24:59" {
+		t.Fatalf("running clock shows %q, want the countdown", got)
+	}
+	for _, chrome := range []string{"<button", "<form", "<input", "class=\"card\"", "Write"} {
+		if strings.Contains(html, chrome) {
+			t.Errorf("clock page contains %q; it should show only the digits", chrome)
+		}
+	}
+}
+
+func TestClockEmptyDuringBreak(t *testing.T) {
+	c := daemon(t)
+	_, page := clockPage(t, c)
+	if _, err := c.StartBreak(context.Background(), time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	if got := clockText(page()); got != "" {
+		t.Fatalf("break clock shows %q; the clock follows focus sessions only", got)
+	}
+}
+
+func TestClockRequiresToken(t *testing.T) {
+	srv := httptest.NewServer(newServer(daemon(t), "secret", false).Handler())
+	defer srv.Close()
+	resp, err := http.Get(srv.URL + "/clock?t=wrong")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("clock with a wrong token: %d", resp.StatusCode)
+	}
+}
