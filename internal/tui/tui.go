@@ -104,7 +104,7 @@ func newModel(api API, now func() time.Time) model {
 		api: api, now: now,
 		goal: goal, custom: custom, reflection: reflection,
 		cfg: wire.Config{PresetSeconds: []int64{1500, 3000}, BreakSeconds: 300, AutoBreak: true},
-		bar: progress.New(progress.WithDefaultGradient(), progress.WithoutPercentage()),
+		bar: progress.New(progress.WithGradient("#ebbcba", "#c4a7e7"), progress.WithoutPercentage()),
 	}
 }
 
@@ -432,18 +432,21 @@ func (m model) start(d time.Duration) tea.Cmd {
 	})
 }
 
+// Rosé Pine accents; the terminal keeps its own background.
 var (
-	accent    = lipgloss.AdaptiveColor{Light: "#5A3FD9", Dark: "#A78BFA"}
-	calm      = lipgloss.AdaptiveColor{Light: "#0F766E", Dark: "#5EEAD4"}
-	alert     = lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#FBBF24"}
-	muted     = lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}
-	danger    = lipgloss.AdaptiveColor{Light: "#B91C1C", Dark: "#F87171"}
+	accent    = lipgloss.Color("#ebbcba") // rose
+	calm      = lipgloss.Color("#9ccfd8") // foam
+	alert     = lipgloss.Color("#f6c177") // gold
+	muted     = lipgloss.Color("#908caa") // subtle
+	danger    = lipgloss.Color("#eb6f92") // love
+	text      = lipgloss.Color("#e0def4")
+	iris      = lipgloss.Color("#c4a7e7")
 	frame     = lipgloss.NewStyle().Padding(1, 3)
 	title     = lipgloss.NewStyle().Bold(true).Foreground(accent)
 	label     = lipgloss.NewStyle().Foreground(muted)
-	big       = lipgloss.NewStyle().Bold(true).Padding(0, 1)
+	big       = lipgloss.NewStyle().Bold(true).Padding(0, 1).Foreground(text)
 	help      = lipgloss.NewStyle().Foreground(muted)
-	selected  = lipgloss.NewStyle().Bold(true).Foreground(accent).Underline(true)
+	selected  = lipgloss.NewStyle().Bold(true).Foreground(iris).Underline(true)
 	errStyle  = lipgloss.NewStyle().Foreground(danger)
 	noteStyle = lipgloss.NewStyle().Foreground(calm)
 )
