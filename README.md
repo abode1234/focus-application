@@ -22,7 +22,9 @@ Requirements: Go 1.27+, gcc, `webkit2gtk-4.1` and `gtk3` development files for t
 make install
 ```
 
-This builds `focusd` and `focus` into `~/.local/bin`, installs a `systemd --user` unit and a `.desktop` entry, and starts the daemon. It is safe to rerun after pulling changes. `make uninstall` removes everything except your history.
+This builds `focusd` and `focus` into `~/.local/bin`, installs a `systemd --user` unit, and starts the daemon. It also adds **Focus** to your application menu with its icon (`~/.local/share/applications` and the hicolor icon theme), so it shows up in GNOME, KDE, rofi, wofi, fuzzel and other launchers that follow the freedesktop spec. Opening it from the menu shows the window; if the daemon is not running yet, the window says so and catches up when it starts.
+
+It is safe to rerun after pulling changes. `make uninstall` removes everything except your history. Set `PREFIX` to install elsewhere, for example `make install PREFIX=$HOME/apps`.
 
 No WebKitGTK? `make build-nogui` builds without CGO. The CLI and TUI work fully, and `focus gui` prints a URL you can open in a browser.
 
@@ -140,7 +142,8 @@ Errors are `{"error": "..."}` with 409 (already running, or not running), 404, 4
 make check          gofmt, go vet (with and without the gui tag), golangci-lint, tests with -race
 make build          bin/focusd and bin/focus (GUI)
 make run-daemon     daemon on throwaway paths under /tmp/focus-dev
-scripts/e2e.sh      25 end-to-end checks of the real binaries in a sandbox
+scripts/e2e.sh      end-to-end checks of the real binaries in a sandbox
+make icons          re-render the PNG icons from packaging/icons/focus.svg (needs rsvg-convert)
 ```
 
 `webview_go` asks pkg-config for `webkit2gtk-4.0`, while current distros ship 4.1. The Makefile adds `packaging/pkgconfig` to `PKG_CONFIG_PATH` to map one to the other. Use `make` rather than a bare `go build -tags gui`, or set that path yourself.
