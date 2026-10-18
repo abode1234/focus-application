@@ -1,0 +1,70 @@
+{{define "panel"}}
+<div class="card" data-state="{{.State}}"{{if .CloseSoon}} data-close-after="1500"{{end}}>
+  <header><span class="dot"></span> focus</header>
+
+  {{if eq .State "error"}}
+    <p class="muted">Can't reach the daemon.</p>
+
+  {{else if not .Session}}
+    <form hx-post="/start" hx-target="#panel">
+      <label for="goal">What will you work on?</label>
+      <input id="goal" name="goal" required maxlength="200" autocomplete="off" autofocus placeholder="Write the design">
+      <fieldset class="presets">
+        {{range .Presets}}
+        <label class="chip"><input type="radio" name="preset" value="{{.Seconds}}"{{if .Checked}} checked{{end}}><span>{{.Label}}</span></label>
+        {{end}}
+        <label class="chip"><input type="radio" name="preset" value="custom"><span>custom</span></label>
+        <input class="custom" name="custom" placeholder="40m" maxlength="16" autocomplete="off">
+      </fieldset>
+      <button type="submit" class="primary">Start focusing</button>
+    </form>
+    <form hx-post="/break" hx-target="#panel" class="secondary-row">
+      <button type="submit" class="link">Take a {{human .Config.BreakSeconds}} break</button>
+    </form>
+
+  {{else if .Session.IsBreak}}
+    <p class="label">Break</p>
+    <div class="countdown calm" data-ends-at="{{.Session.EndsAt}}" data-started-at="{{.Session.StartedAt}}">{{clock .Status.RemainingSeconds}}</div>
+    <div class="bar calm"><div></div></div>
+    <p class="muted">Back at {{hhmm .Session.EndsAt}}. Stretch, drink water, look away from the screen.</p>
+    <form hx-post="/finish" hx-target="#panel">
+      <input type="hidden" name="id" value="{{.Session.ID}}">
+      <button type="submit" class="ghost">End break</button>
+    </form>
+
+  {{else if .Status.TimeUp}}
+    <p class="label alert">Time's up</p>
+    <h1>{{.Session.Goal}}</h1>
+    <form hx-post="/finish" hx-target="#panel">
+      <input type="hidden" name="id" value="{{.Session.ID}}">
+      <label for="reflection">What did you accomplish?</label>
+      <textarea id="reflection" name="reflection" rows="4" maxlength="1000" autofocus></textarea>
+      <label class="check"><input type="checkbox" name="break"{{if .Config.AutoBreak}} checked{{end}}> Take a {{human .Config.BreakSeconds}} break</label>
+      <button type="submit" class="primary">Save</button>
+    </form>
+
+  {{else}}
+    <p class="label">Focusing on</p>
+    <h1>{{.Session.Goal}}</h1>
+    <div class="countdown" data-ends-at="{{.Session.EndsAt}}" data-started-at="{{.Session.StartedAt}}">{{clock .Status.RemainingSeconds}}</div>
+    <div class="bar"><div></div></div>
+    <p class="muted">{{human .Session.PlannedSeconds}} session · ends {{hhmm .Session.EndsAt}}</p>
+    <details>
+      <summary>Finish early</summary>
+      <form hx-post="/finish" hx-target="#panel">
+        <input type="hidden" name="id" value="{{.Session.ID}}">
+        <textarea name="reflection" rows="3" maxlength="1000" placeholder="What did you accomplish?"></textarea>
+        <label class="check"><input type="checkbox" name="break"{{if .Config.AutoBreak}} checked{{end}}> Take a break</label>
+        <button type="submit" class="primary">Finish</button>
+      </form>
+    </details>
+    <form hx-post="/abandon" hx-target="#panel" hx-confirm="Abandon this session? It won't count toward your stats.">
+      <input type="hidden" name="id" value="{{.Session.ID}}">
+      <button type="submit" class="link danger">Abandon</button>
+    </form>
+  {{end}}
+
+  {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+  {{if .Notice}}<p class="notice">{{.Notice}}</p>{{end}}
+</div>
+{{end}}
