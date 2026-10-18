@@ -52,7 +52,7 @@ func NewRoot() *cobra.Command {
 	root.PersistentFlags().StringVar(&a.socket, "socket", config.ResolvePaths().Socket, "path to the focusd socket")
 	root.AddCommand(
 		a.startCmd(), a.breakCmd(), a.statusCmd(), a.finishCmd(), a.abandonCmd(),
-		a.logCmd(), a.statsCmd(), tuiCmd(a), guiCmd(a), daemonCmd(),
+		a.logCmd(), a.statsCmd(), tuiCmd(a), guiCmd(a), clockCmd(a), daemonCmd(),
 	)
 	return root
 }
